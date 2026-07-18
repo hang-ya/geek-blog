@@ -1,0 +1,6 @@
+# ─── wrangler.toml — Cloudflare Pages 部署 ───
+# 部署命令: wrangler pages deploy out --project-name=tzyday-geek
+#
+# 域名: geek.tzyday.com
+# Pages 项目: tzyday-geek
+# 构建设置: npm run build, 输出目录: out/
