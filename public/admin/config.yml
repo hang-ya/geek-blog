@@ -1,13 +1,10 @@
 backend:
   name: github
   repo: hang-ya/geek-blog
-  branch: main                   # ← 改成你的默认分支
-  base_url: https://api.decapcms.org   # 社区 OAuth 网关
+  branch: main
 
-# ─── 如果 repo 还没创建，先去 GitHub 创建仓库 "geek-blog" ───
-
-media_folder: "public/images"    # 上传的图片存在哪
-public_folder: "/images"         # 图片的公开路径
+media_folder: "public/images"
+public_folder: "/images"
 
 collections:
   - name: "posts"
