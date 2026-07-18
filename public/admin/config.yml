@@ -1,6 +1,6 @@
 backend:
   name: github
-  repo: TZYDAY/geek-blog       # ← 改成你的 GitHub 用户名/仓库名
+  repo: hang-ya/geek-blog
   branch: main                   # ← 改成你的默认分支
   base_url: https://api.decapcms.org   # 社区 OAuth 网关
 
