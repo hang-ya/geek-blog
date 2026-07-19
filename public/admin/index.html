@@ -7,56 +7,30 @@
   <title>GEEK — 内容管理</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #0d1117; }
+    body { font-family: system-ui, -apple-system, sans-serif; }
 
     #gate {
       position: fixed; inset: 0; z-index: 9999;
       display: flex; justify-content: center; align-items: center;
-      background: #0d1117;
-      font-family: system-ui, -apple-system, sans-serif;
+      background: #0d1117; color: #e6edf3;
+      -webkit-font-smoothing: antialiased;
     }
-    #gate.hidden { display: none; }
+    #gate.done { display: none; }
 
-    .gate-box {
-      text-align: center;
-      padding: 40px;
-      max-width: 360px;
-      width: 100%;
-    }
-    .gate-box h1 {
-      font-family: "JetBrains Mono", monospace;
-      font-size: 24px;
-      color: #58a6ff;
-      letter-spacing: 0.15em;
-      margin-bottom: 8px;
-    }
+    .gate-box { text-align: center; padding: 40px; max-width: 360px; width: 100%; }
+    .gate-box h1 { font-family: "JetBrains Mono", monospace; font-size: 24px; color: #58a6ff; letter-spacing: 0.15em; margin-bottom: 8px; }
     .gate-box p { color: #8b949e; font-size: 14px; margin-bottom: 24px; }
     .gate-box input {
-      width: 100%;
-      padding: 12px 16px;
-      background: #161b22;
-      border: 1px solid #30363d;
-      border-radius: 8px;
-      color: #e6edf3;
-      font-size: 15px;
-      text-align: center;
-      letter-spacing: 4px;
-      outline: none;
-      transition: border-color 0.2s;
+      width: 100%; padding: 12px 16px;
+      background: #161b22; border: 1px solid #30363d; border-radius: 8px;
+      color: #e6edf3; font-size: 15px; text-align: center; letter-spacing: 4px;
+      outline: none; transition: border-color 0.2s;
     }
     .gate-box input:focus { border-color: #58a6ff; }
     .gate-box button {
-      width: 100%;
-      margin-top: 12px;
-      padding: 12px;
-      background: #238636;
-      border: none;
-      border-radius: 8px;
-      color: #fff;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
+      width: 100%; margin-top: 12px; padding: 12px;
+      background: #238636; border: none; border-radius: 8px;
+      color: #fff; font-size: 15px; font-weight: 600; cursor: pointer;
     }
     .gate-box button:hover { background: #2ea043; }
     .gate-box .error { color: #f85149; font-size: 13px; margin-top: 12px; display: none; }
@@ -64,10 +38,7 @@
   </style>
 </head>
 <body>
-  <!-- CMS mounts here immediately -->
   <div id="nc-root"></div>
-
-  <!-- Password overlay -->
   <div id="gate">
     <div class="gate-box">
       <h1>GEEK</h1>
@@ -80,10 +51,15 @@
   </div>
 
   <script>
+    // Stop Decap CMS from auto-initializing
+    window.CMS_MANUAL_INIT = true;
+  </script>
+  <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+  <script>
     var OAUTH = 'https://geek-oauth.3585770584.workers.dev';
 
     if (sessionStorage.getItem('admin_ok') === '1') {
-      document.getElementById('gate').className = 'hidden';
+      initCMS();
     }
 
     async function verify() {
@@ -100,7 +76,8 @@
         var data = await res.json();
         if (data.ok) {
           sessionStorage.setItem('admin_ok', '1');
-          document.getElementById('gate').className = 'hidden';
+          document.getElementById('gate').className = 'done';
+          initCMS();
         } else {
           err.textContent = '密码错误';
           err.style.display = 'block';
@@ -113,11 +90,17 @@
       }
     }
 
+    function initCMS() {
+      document.getElementById('gate').className = 'done';
+      if (!window._cmsInited) {
+        window._cmsInited = true;
+        window.CMS.init({ config: { load_config_file: true } });
+      }
+    }
+
     document.getElementById('pw').addEventListener('keydown', function(e) {
       if (e.key === 'Enter') verify();
     });
   </script>
-
-  <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
 </body>
 </html>
