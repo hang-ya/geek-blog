@@ -27,3 +27,17 @@ collections:
       - { label: "标签", name: "tags", widget: "list", default: ["随笔"] }
       - { label: "草稿", name: "draft", widget: "boolean", default: false, required: false }
       - { label: "正文", name: "body", widget: "markdown" }
+
+  - name: "collections"
+    label: "合集"
+    label_singular: "合集"
+    folder: "content/collections"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "标题", name: "title", widget: "string" }
+      - { label: "描述", name: "description", widget: "text" }
+      - { label: "日期", name: "date", widget: "datetime", format: "YYYY-MM-DD", date_format: "YYYY-MM-DD", time_format: false }
+      - { label: "封面图", name: "cover", widget: "image", required: false }
+      - { label: "文章 slug 列表", name: "posts", widget: "list", hint: "按顺序填入文章 slug（文件名去掉 .md）" }
+      - { label: "草稿", name: "draft", widget: "boolean", default: false, required: false }

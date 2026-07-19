@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getAllPosts, getPostBySlug } from "@/lib/posts";
+import { getCollectionsForPost, getCollectionBySlug, getAdjacentPosts } from "@/lib/collections";
 import { renderMarkdown } from "@/lib/markdown";
 
 interface Props { params: Promise<{ slug: string }>; }
@@ -15,11 +16,42 @@ export default async function PostPage({ params }: Props) {
   if (!post) notFound();
   const html = renderMarkdown(post.content);
 
+  // Find series info
+  const collections = getCollectionsForPost(slug);
+  const series = collections[0] ? getCollectionBySlug(collections[0].slug) : null;
+  const adjacent = series ? getAdjacentPosts(series, slug) : { prev: null, next: null };
+  const seriesIndex = series ? series.posts.indexOf(slug) + 1 : 0;
+
   return (
     <div className="max-w-3xl mx-auto px-6 py-16">
       <Link href="/" className="inline-flex items-center gap-1 text-text-muted hover:text-accent transition-colors font-mono mb-12">
         ← cd ..
       </Link>
+
+      {/* Series banner */}
+      {series && (
+        <div className="mb-10 p-4 rounded-lg border border-border bg-bg-secondary">
+          <div className="flex items-center justify-between mb-2">
+            <Link href={`/collections/${series.slug}`} className="text-sm font-semibold text-accent hover:underline">
+              {series.title}
+            </Link>
+            <span className="text-xs text-text-muted font-mono">{seriesIndex}/{series.posts.length}</span>
+          </div>
+          <div className="flex gap-2 text-sm font-mono">
+            {adjacent.prev ? (
+              <Link href={`/posts/${adjacent.prev.slug}`} className="text-text-muted hover:text-accent transition-colors">
+                ← {adjacent.prev.title}
+              </Link>
+            ) : <span className="text-text-muted opacity-40">← 第一篇</span>}
+            <span className="text-border">|</span>
+            {adjacent.next ? (
+              <Link href={`/posts/${adjacent.next.slug}`} className="text-text-muted hover:text-accent transition-colors">
+                {adjacent.next.title} →
+              </Link>
+            ) : <span className="text-text-muted opacity-40">最后一篇 →</span>}
+          </div>
+        </div>
+      )}
 
       <header className="mb-12">
         <h1 className="text-3xl sm:text-4xl font-bold text-text leading-tight tracking-tight">
@@ -45,6 +77,27 @@ export default async function PostPage({ params }: Props) {
       </header>
 
       <article className="prose" dangerouslySetInnerHTML={{ __html: html }} />
+
+      {/* Series nav at bottom */}
+      {series && (
+        <nav className="mt-12 p-4 rounded-lg border border-border bg-bg-secondary">
+          <p className="text-xs text-text-muted font-mono mb-3">
+            {series.title} · {seriesIndex}/{series.posts.length}
+          </p>
+          <div className="flex flex-col sm:flex-row sm:justify-between gap-2 text-sm font-mono">
+            {adjacent.prev ? (
+              <Link href={`/posts/${adjacent.prev.slug}`} className="text-text-muted hover:text-accent transition-colors">
+                ← {adjacent.prev.title}
+              </Link>
+            ) : <span />}
+            {adjacent.next ? (
+              <Link href={`/posts/${adjacent.next.slug}`} className="text-text-muted hover:text-accent transition-colors text-right">
+                {adjacent.next.title} →
+              </Link>
+            ) : <span />}
+          </div>
+        </nav>
+      )}
 
       <hr className="mt-16 mb-8 border-border" />
 
