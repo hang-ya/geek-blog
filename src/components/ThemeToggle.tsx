@@ -24,7 +24,7 @@ export function ThemeToggle() {
       aria-label="切换主题"
       className="text-sm text-text-muted hover:text-text transition-colors font-mono"
     >
-      {dark ? "浅色" : "深色"}
+      {dark ? "☀" : "☾"}
     </button>
   );
 }

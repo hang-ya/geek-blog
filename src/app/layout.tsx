@@ -28,7 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <nav className="flex items-center gap-4 text-sm text-text-secondary font-medium">
               <a href="/" className="hover:text-text transition-colors">文章</a>
               <a href="https://tzyday.com" target="_blank" rel="noopener noreferrer" className="hover:text-text transition-colors">
-                工具
+                生活
               </a>
               <ThemeToggle />
             </nav>
