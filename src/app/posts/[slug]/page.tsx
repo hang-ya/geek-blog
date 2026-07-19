@@ -28,8 +28,12 @@ export default async function PostPage({ params }: Props) {
         <div className="mt-4 flex items-center gap-3 font-mono text-text-muted">
           <time dateTime={post.date}>{post.date}</time>
           {post.tags.length > 0 && (
-            <span className="text-accent">
-              {post.tags.map((t: string) => `#${t}`).join(" ")}
+            <span className="flex flex-wrap gap-2">
+              {post.tags.map((t: string) => (
+                <Link key={t} href={`/tags/${t}`} className="text-accent hover:underline">
+                  #{t}
+                </Link>
+              ))}
             </span>
           )}
         </div>

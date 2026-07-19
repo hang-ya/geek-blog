@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { getAllPosts } from "@/lib/posts";
+import { getAllPosts, getAllTags } from "@/lib/posts";
 
 export default function HomePage() {
   const posts = getAllPosts();
+  const tags = getAllTags();
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-16">
@@ -37,6 +38,25 @@ export default function HomePage() {
             </article>
           ))}
         </div>
+      )}
+
+      {/* Tags section */}
+      {tags.length > 0 && (
+        <footer className="mt-16 pt-10 border-t border-border">
+          <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-4">标签</h2>
+          <div className="flex flex-wrap gap-2">
+            {tags.map((t) => (
+              <Link
+                key={t.name}
+                href={`/tags/${t.name}`}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-mono bg-bg-secondary text-text-secondary hover:text-accent border border-border hover:border-accent transition-colors"
+              >
+                {t.name}
+                <span className="opacity-50 text-xs">{t.count}</span>
+              </Link>
+            ))}
+          </div>
+        </footer>
       )}
     </div>
   );

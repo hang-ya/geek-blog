@@ -40,6 +40,27 @@ export function getAllPosts(): PostMeta[] {
     .sort((a, b) => (b.date > a.date ? 1 : -1));
 }
 
+/** Get all unique tags with post counts */
+export function getAllTags(): { name: string; count: number }[] {
+  const posts = getAllPosts();
+  const map = new Map<string, number>();
+  for (const p of posts) {
+    for (const t of p.tags) {
+      map.set(t, (map.get(t) || 0) + 1);
+    }
+  }
+  return [...map.entries()]
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count);
+}
+
+/** Get posts filtered by tag */
+export function getPostsByTag(tag: string): PostMeta[] {
+  return getAllPosts().filter((p) =>
+    p.tags.some((t) => t.toLowerCase() === tag.toLowerCase())
+  );
+}
+
 /** Get a single post by slug */
 export function getPostBySlug(slug: string): Post | null {
   const filePath = path.join(POSTS_DIR, `${slug}.md`);
