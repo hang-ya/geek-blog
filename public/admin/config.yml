@@ -98,10 +98,15 @@ collections:
         widget: image
         required: false
         hint: "可选，合集的封面图片"
-      - label: "文章 slug 列表"
+      - label: "文章列表"
         name: posts
-        widget: list
-        hint: "按顺序填入文章 slug（文件名去掉 .md 后缀）"
+        widget: relation
+        collection: posts
+        search_fields: ["title"]
+        value_field: "slug"
+        display_fields: ["title"]
+        multiple: true
+        hint: "搜索并选择文章，可拖拽排序"
       - label: "草稿"
         name: draft
         widget: boolean
