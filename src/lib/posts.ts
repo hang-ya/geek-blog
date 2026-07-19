@@ -9,6 +9,7 @@ export interface PostMeta {
   description: string;
   tags: string[];
   collection?: string;
+  cover?: string;
   draft?: boolean;
 }
 
@@ -33,6 +34,7 @@ export function getAllPosts(): PostMeta[] {
       description: data.description || "",
       tags: data.tags || [],
       collection: data.collection || undefined,
+      cover: data.cover || undefined,
       draft: data.draft === true,
     } as PostMeta;
   });

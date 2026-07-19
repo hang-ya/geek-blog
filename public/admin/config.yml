@@ -40,6 +40,11 @@ collections:
         name: description
         widget: text
         hint: "一句话描述文章内容，会显示在首页列表"
+      - label: "封面图"
+        name: cover
+        widget: image
+        required: false
+        hint: "文章封面图片，显示在首页和文章顶部"
       - label: "标签"
         name: tags
         widget: list

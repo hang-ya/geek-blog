@@ -2,6 +2,7 @@
 title: "Hello, World"
 date: "2026-06-28"
 description: "第一篇文章，聊聊这个博客的由来"
+draft: true
 tags: ["随笔", "博客"]
 ---
 

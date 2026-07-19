@@ -5,7 +5,8 @@ import { getAllTags, getPostsByTag } from "@/lib/posts";
 interface Props { params: Promise<{ tag: string }>; }
 
 export function generateStaticParams() {
-  return getAllTags().map((t) => ({ tag: t.name }));
+  const tags = getAllTags();
+  return tags.length > 0 ? tags.map((t) => ({ tag: t.name })) : [{ tag: "_" }];
 }
 
 export default async function TagPage({ params }: Props) {

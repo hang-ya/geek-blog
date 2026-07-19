@@ -15,32 +15,56 @@ export default function HomePage() {
       </header>
 
       {posts.length === 0 ? (
-        <p className="text-center py-20 text-text-muted text-lg">还没有文章。</p>
+        <div className="text-center py-20">
+          <p className="text-6xl mb-4">📝</p>
+          <p className="text-text-muted text-lg">还没有文章，去后台写第一篇吧</p>
+          <a href="/admin/" className="inline-block mt-4 text-accent hover:underline text-sm font-mono">
+            打开后台 →
+          </a>
+        </div>
       ) : (
-        <div>
-          {posts.map((post, i) => (
-            <article key={post.slug}>
-              {i > 0 && <hr className="border-border-light" />}
-              <Link
-                href={`/posts/${post.slug}`}
-                className="block py-6 group -mx-2 px-2 rounded-lg hover:bg-bg-secondary/50 transition-colors"
-              >
-                <time dateTime={post.date} className="text-sm text-text-muted font-mono">
-                  {post.date}
-                </time>
-                <h2 className="mt-1 text-xl font-semibold text-text group-hover:text-accent transition-colors leading-snug">
+        <div className="grid sm:grid-cols-2 gap-6">
+          {posts.map((post) => (
+            <Link
+              key={post.slug}
+              href={`/posts/${post.slug}`}
+              className="group block rounded-xl border border-border overflow-hidden hover:border-accent/30 hover:shadow-sm transition-all bg-card"
+            >
+              {/* Cover */}
+              {post.cover ? (
+                <div className="aspect-[16/9] bg-bg-secondary overflow-hidden">
+                  <img src={post.cover} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                </div>
+              ) : (
+                <div className="aspect-[16/9] bg-bg-secondary flex items-center justify-center text-4xl text-text-muted">
+                  📄
+                </div>
+              )}
+
+              <div className="p-5">
+                <time dateTime={post.date} className="text-xs text-text-muted font-mono">{post.date}</time>
+                <h2 className="mt-1.5 text-lg font-semibold text-text group-hover:text-accent transition-colors leading-snug">
                   {post.title}
                 </h2>
-                <p className="mt-1.5 text-text-secondary leading-relaxed">
+                <p className="mt-1.5 text-sm text-text-secondary leading-relaxed line-clamp-2">
                   {post.description}
                 </p>
-              </Link>
-            </article>
+                {post.tags.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {post.tags.map((t: string) => (
+                      <span key={t} className="text-[11px] font-mono px-2 py-0.5 rounded bg-bg-secondary text-text-muted border border-border-light">
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </Link>
           ))}
         </div>
       )}
 
-      {/* Tags section */}
+      {/* Tags */}
       {tags.length > 0 && (
         <footer className="mt-16 pt-10 border-t border-border">
           <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-4">标签</h2>
