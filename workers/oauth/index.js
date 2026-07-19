@@ -1,34 +1,24 @@
 /**
  * Decap CMS GitHub OAuth Proxy — Cloudflare Worker
  *
- * Replaces api.decapcms.org (unreliable) with a self-hosted OAuth gateway.
+ * Replaces api.decapcms.org with a self-hosted OAuth gateway.
  *
  * Setup:
- *   1. Create GitHub OAuth App at https://github.com/settings/developers
- *      - Callback URL: https://<this-worker>.workers.dev/callback
- *   2. Set secrets:
- *      wrangler secret put GITHUB_CLIENT_ID
- *      wrangler secret put GITHUB_CLIENT_SECRET
- *   3. Update public/admin/config.yml base_url → this worker's URL
+ *   1. GitHub OAuth App callback URL: https://geek-oauth.3585770584.workers.dev/callback
+ *   2. wrangler secret put GITHUB_CLIENT_ID
+ *   3. wrangler secret put GITHUB_CLIENT_SECRET
  */
 
 const GITHUB_AUTHORIZE = "https://github.com/login/oauth/authorize";
 const GITHUB_TOKEN = "https://github.com/login/oauth/access_token";
 
-function html(msgOrToken) {
-  // If passed a token object, send it back to Decap CMS via postMessage
-  const isToken = typeof msgOrToken === "object";
-  const script = isToken
-    ? `<script>window.opener.postMessage(${JSON.stringify(msgOrToken)}, "*");window.close();</script>`
-    : "";
-  const body = isToken ? "<p>授权成功，窗口即将关闭…</p>" : `<p>${msgOrToken}</p>`;
-
+function renderPage(title, body, script) {
   return `<!DOCTYPE html>
 <html lang="zh-CN">
-<head><meta charset="utf-8"><title>Geek OAuth</title>
-<style>body{font-family:system-ui;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;background:#0d1117;color:#c9d1d9;}</style>
+<head><meta charset="utf-8"><title>${title}</title>
+<style>body{font-family:system-ui;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;background:#0d1117;color:#c9d1d9;text-align:center;padding:20px;box-sizing:border-box}code{background:#21262d;padding:2px 8px;border-radius:4px}</style>
 </head>
-<body>${body}${script}</body>
+<body><div>${body}</div>${script || ""}</body>
 </html>`;
 }
 
@@ -40,24 +30,12 @@ async function exchangeCode(code, clientId, clientSecret) {
       Accept: "application/json",
       "User-Agent": "geek-blog-oauth-worker",
     },
-    body: JSON.stringify({
-      client_id: clientId,
-      client_secret: clientSecret,
-      code,
-    }),
+    body: JSON.stringify({ client_id: clientId, client_secret: clientSecret, code }),
   });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`GitHub token exchange failed: ${res.status} ${text}`);
-  }
-
   const data = await res.json();
-
   if (data.error) {
-    throw new Error(`GitHub OAuth error: ${data.error_description || data.error}`);
+    throw new Error(data.error_description || data.error);
   }
-
   return data.access_token;
 }
 
@@ -65,47 +43,62 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const path = url.pathname;
+    const REDIRECT_URI = `${url.origin}/callback`;
+
+    // Root — health check
+    if (path === "/") {
+      return new Response(renderPage("Geek OAuth", "<p>✅ Geek OAuth 代理正常工作</p><p style='margin-top:8px;font-size:14px;color:#8b949e'>用于 Decap CMS GitHub 登录</p>"), {
+        headers: { "Content-Type": "text/html;charset=utf-8" },
+      });
+    }
 
     // GET /auth → redirect to GitHub
-    if (path === "/auth" && request.method === "GET") {
+    if (path === "/auth") {
       const params = new URLSearchParams({
         client_id: env.GITHUB_CLIENT_ID,
         scope: "repo,user",
+        redirect_uri: REDIRECT_URI,
       });
-
-      const redirect = `${GITHUB_AUTHORIZE}?${params.toString()}`;
-      return Response.redirect(redirect, 302);
+      return Response.redirect(`${GITHUB_AUTHORIZE}?${params.toString()}`, 302);
     }
 
     // GET /callback?code=xxx → exchange for token
-    if (path === "/callback" && request.method === "GET") {
+    if (path === "/callback") {
       const code = url.searchParams.get("code");
+      const error = url.searchParams.get("error");
+
+      if (error) {
+        return new Response(renderPage("授权失败", `<h2>授权被取消</h2><p>${error}</p><p style="margin-top:16px;color:#8b949e">请关闭此窗口后重试</p>`), {
+          headers: { "Content-Type": "text/html;charset=utf-8" },
+          status: 400,
+        });
+      }
 
       if (!code) {
-        return new Response(html("缺少授权码 — 请重试登录"), {
+        return new Response(renderPage("错误", "<h2>缺少授权码</h2><p style='color:#8b949e'>请重试登录</p>"), {
           headers: { "Content-Type": "text/html;charset=utf-8" },
           status: 400,
         });
       }
 
       try {
-        const token = await exchangeCode(
-          code,
-          env.GITHUB_CLIENT_ID,
-          env.GITHUB_CLIENT_SECRET
-        );
+        const token = await exchangeCode(code, env.GITHUB_CLIENT_ID, env.GITHUB_CLIENT_SECRET);
 
-        // Return token to Decap CMS via postMessage
-        return new Response(
-          html({
-            token,
-            provider: "github",
-            backendName: "github",
-          }),
-          { headers: { "Content-Type": "text/html;charset=utf-8" } }
-        );
+        // Decap CMS expects postMessage with { token } object
+        const script = `<script>
+          try {
+            window.opener.postMessage(${JSON.stringify({ token })}, "*");
+          } catch(e) {
+            console.error("postMessage failed:", e);
+          }
+          setTimeout(function(){ window.close(); }, 500);
+        </script>`;
+
+        return new Response(renderPage("授权成功", "<p>✅ 授权成功</p><p style='color:#8b949e;font-size:14px'>窗口即将关闭…</p>", script), {
+          headers: { "Content-Type": "text/html;charset=utf-8" },
+        });
       } catch (err) {
-        return new Response(html(`授权失败: ${err.message}`), {
+        return new Response(renderPage("授权失败", `<h2>Token 交换失败</h2><p style="color:#f85149">${err.message}</p>`), {
           headers: { "Content-Type": "text/html;charset=utf-8" },
           status: 500,
         });
@@ -116,24 +109,16 @@ export default {
     if (path === "/refresh" && request.method === "POST") {
       try {
         const { token } = await request.json();
-        // GitHub tokens don't expire unless revoked; return as-is
-        return new Response(
-          JSON.stringify({
-            token,
-            provider: "github",
-            backendName: "github",
-          }),
-          { headers: { "Content-Type": "application/json" } }
-        );
+        return new Response(JSON.stringify({ token, provider: "github", backendName: "github" }), {
+          headers: { "Content-Type": "application/json" },
+        });
       } catch {
         return new Response(JSON.stringify({ error: "Invalid request" }), {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
+          status: 400, headers: { "Content-Type": "application/json" },
         });
       }
     }
 
-    // 404
     return new Response("Not Found", { status: 404 });
   },
 };
