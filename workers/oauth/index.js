@@ -1,9 +1,9 @@
 /**
  * Decap CMS GitHub OAuth Proxy — Cloudflare Worker
- * Based on sterlingwes/decap-proxy pattern
- *
- * GitHub OAuth App callback URL must be: https://geek-oauth.3585770584.workers.dev/callback
- * Secrets: GITHUB_OAUTH_ID, GITHUB_OAUTH_SECRET (via wrangler secret put)
+ * Implements the NetlifyAuthenticator handshake protocol:
+ *   1. popup → "authorizing:github" → opener
+ *   2. opener → "authorizing:github" → popup
+ *   3. popup → "authorization:github:success:{...}" → opener
  */
 
 const GITHUB_AUTHORIZE = "https://github.com/login/oauth/authorize";
@@ -15,20 +15,11 @@ export default {
     const path = url.pathname;
     const origin = url.origin;
 
-    // POST /token?grant_type=refresh_token
-    // Decap CMS calls this to refresh tokens — GitHub tokens don't expire, pass through
-    if (path === "/token" && request.method === "POST") {
-      try {
-        const body = await request.json();
-        return new Response(JSON.stringify({
-          access_token: body.refresh_token || "",
-          token_type: "bearer",
-        }), { headers: { "Content-Type": "application/json" } });
-      } catch {
-        return new Response(JSON.stringify({ error: "invalid_request" }), {
-          status: 400, headers: { "Content-Type": "application/json" },
-        });
-      }
+    // GET / → health check
+    if (path === "/") {
+      return new Response(htmlPage("Geek OAuth 代理正常 ✅"), {
+        headers: { "Content-Type": "text/html;charset=utf-8" },
+      });
     }
 
     // GET /auth → redirect to GitHub OAuth
@@ -43,20 +34,20 @@ export default {
       return Response.redirect(`${GITHUB_AUTHORIZE}?${params.toString()}`, 302);
     }
 
-    // GET /callback → exchange code for token, send back via postMessage
+    // GET /callback → exchange code, then perform netlify-auth handshake
     if (path === "/callback") {
       const code = url.searchParams.get("code");
       const error = url.searchParams.get("error");
 
       if (error) {
-        return new Response(html(`授权被取消: ${error}`), {
+        return new Response(htmlPage(`授权被取消: ${error}`), {
           headers: { "Content-Type": "text/html;charset=utf-8" },
           status: 400,
         });
       }
 
       if (!code) {
-        return new Response(html("缺少授权码"), {
+        return new Response(htmlPage("缺少授权码"), {
           headers: { "Content-Type": "text/html;charset=utf-8" },
           status: 400,
         });
@@ -78,27 +69,76 @@ export default {
           throw new Error(tokenData.error_description || tokenData.error);
         }
 
-        // Send token to Decap CMS opener via postMessage
+        const tokenStr = JSON.stringify({ token: tokenData.access_token, provider: "github" });
+
+        // NetlifyAuthenticator handshake:
+        // 1. Send "authorizing:github" to opener
+        // 2. Wait for opener to reply with "authorizing:github"
+        // 3. Send "authorization:github:success:{json}"
         const script = `<script>
-          const data = { token: "${tokenData.access_token}", provider: "github", backendName: "github" };
-          window.opener.postMessage(data, "*");
+          var tokenPayload = ${JSON.stringify(tokenStr)};
+          var sent = false;
+
+          function sendAuth() {
+            if (sent) return;
+            sent = true;
+            window.opener.postMessage("authorization:github:success:" + tokenPayload, "*");
+            document.body.innerHTML += "<p style='color:#3fb950;margin-top:12px'>✅ 登录成功，请关闭此窗口</p>";
+          }
+
+          // Step 1: send handshake
+          window.opener.postMessage("authorizing:github", "*");
+
+          // Step 2: listen for response
+          window.addEventListener("message", function(e) {
+            if (e.data === "authorizing:github") {
+              sendAuth();
+            }
+          });
+
+          // Fallback: if no response within 3s, send anyway
+          setTimeout(function() { sendAuth(); }, 3000);
         </script>`;
 
-        return new Response(html("授权成功 ✅", script), {
+        return new Response(htmlPage("授权成功", script), {
           headers: { "Content-Type": "text/html;charset=utf-8" },
         });
       } catch (e) {
-        return new Response(html(`Token 交换失败: ${e.message}`), {
+        const errJson = JSON.stringify({ error: e.message });
+        const script = `<script>
+          window.opener.postMessage("authorizing:github", "*");
+          window.addEventListener("message", function(e) {
+            if (e.data === "authorizing:github") {
+              window.opener.postMessage("authorization:github:error:" + ${JSON.stringify(errJson)}, "*");
+            }
+          });
+          setTimeout(function() {
+            window.opener.postMessage("authorization:github:error:" + ${JSON.stringify(errJson)}, "*");
+          }, 3000);
+        </script>`;
+
+        return new Response(htmlPage(`Token 交换失败: ${e.message}`, script), {
           headers: { "Content-Type": "text/html;charset=utf-8" },
           status: 500,
         });
       }
     }
 
-    // GET / — health check
-    if (path === "/") {
-      return new Response(html("Geek OAuth 代理正常 ✅"), {
-        headers: { "Content-Type": "text/html;charset=utf-8" },
+    // POST /auth/refresh → refresh token (GitHub tokens don't expire)
+    if (path === "/auth/refresh" && request.method === "POST") {
+      const url = new URL(request.url);
+      const refreshToken = url.searchParams.get("refresh_token");
+      return new Response(JSON.stringify({
+        token: refreshToken || "",
+        access_token: refreshToken || "",
+        provider: "github",
+      }), { headers: { "Content-Type": "application/json" } });
+    }
+
+    // POST /token → used by some CMS versions for refresh
+    if (path === "/token" && request.method === "POST") {
+      return new Response(JSON.stringify({ access_token: "" }), {
+        headers: { "Content-Type": "application/json" },
       });
     }
 
@@ -106,7 +146,7 @@ export default {
   },
 };
 
-function html(body, script) {
+function htmlPage(body, script) {
   return `<!DOCTYPE html>
 <html lang="zh-CN">
 <head><meta charset="utf-8"><title>Geek OAuth</title>
