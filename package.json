@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && node scripts/build-search-index.mjs",
     "start": "next start",
     "lint": "eslint",
     "deploy": "next build && wrangler pages deploy out --project-name=tzyday-geek --commit-dirty=true"
