@@ -7,29 +7,31 @@
   <title>GEEK — 内容管理</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: system-ui, -apple-system, sans-serif;
-      background: #0d1117;
-      color: #e6edf3;
+    body { background: #0d1117; }
+
+    #gate {
+      position: fixed; inset: 0; z-index: 9999;
       display: flex; justify-content: center; align-items: center;
-      min-height: 100vh;
-      -webkit-font-smoothing: antialiased;
+      background: #0d1117;
+      font-family: system-ui, -apple-system, sans-serif;
     }
-    .gate {
+    #gate.hidden { display: none; }
+
+    .gate-box {
       text-align: center;
       padding: 40px;
       max-width: 360px;
       width: 100%;
     }
-    .gate h1 {
+    .gate-box h1 {
       font-family: "JetBrains Mono", monospace;
       font-size: 24px;
       color: #58a6ff;
       letter-spacing: 0.15em;
       margin-bottom: 8px;
     }
-    .gate p { color: #8b949e; font-size: 14px; margin-bottom: 24px; }
-    .gate input {
+    .gate-box p { color: #8b949e; font-size: 14px; margin-bottom: 24px; }
+    .gate-box input {
       width: 100%;
       padding: 12px 16px;
       background: #161b22;
@@ -42,8 +44,8 @@
       outline: none;
       transition: border-color 0.2s;
     }
-    .gate input:focus { border-color: #58a6ff; }
-    .gate button {
+    .gate-box input:focus { border-color: #58a6ff; }
+    .gate-box button {
       width: 100%;
       margin-top: 12px;
       padding: 12px;
@@ -56,48 +58,49 @@
       cursor: pointer;
       transition: background 0.2s;
     }
-    .gate button:hover { background: #2ea043; }
-    .gate .error { color: #f85149; font-size: 13px; margin-top: 12px; display: none; }
-    .gate .hint { margin-top: 16px; font-size: 12px; color: #484f58; }
+    .gate-box button:hover { background: #2ea043; }
+    .gate-box .error { color: #f85149; font-size: 13px; margin-top: 12px; display: none; }
+    .gate-box .hint { margin-top: 16px; font-size: 12px; color: #484f58; }
   </style>
 </head>
 <body>
-  <!-- Password gate -->
-  <div id="gate" class="gate">
-    <h1>GEEK</h1>
-    <p>内容管理系统</p>
-    <input type="password" id="pw" placeholder="输入密码" autofocus />
-    <button onclick="verify()">验证</button>
-    <p id="error" class="error"></p>
-    <p class="hint">仅限管理员访问</p>
+  <!-- CMS mounts here immediately -->
+  <div id="nc-root"></div>
+
+  <!-- Password overlay -->
+  <div id="gate">
+    <div class="gate-box">
+      <h1>GEEK</h1>
+      <p>内容管理系统</p>
+      <input type="password" id="pw" placeholder="输入密码" autofocus />
+      <button onclick="verify()">验证</button>
+      <p id="error" class="error"></p>
+      <p class="hint">仅限管理员访问</p>
+    </div>
   </div>
 
-  <!-- CMS mount (hidden until verified) -->
-  <div id="nc-root" style="display:none"></div>
-
   <script>
-    const OAUTH = 'https://geek-oauth.3585770584.workers.dev';
+    var OAUTH = 'https://geek-oauth.3585770584.workers.dev';
 
-    // Check if already verified this session
     if (sessionStorage.getItem('admin_ok') === '1') {
-      loadCMS();
+      document.getElementById('gate').className = 'hidden';
     }
 
     async function verify() {
-      const pw = document.getElementById('pw').value;
-      const err = document.getElementById('error');
+      var pw = document.getElementById('pw').value;
+      var err = document.getElementById('error');
       if (!pw) return;
 
       try {
-        const res = await fetch(OAUTH + '/verify', {
+        var res = await fetch(OAUTH + '/verify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ password: pw }),
         });
-        const data = await res.json();
+        var data = await res.json();
         if (data.ok) {
           sessionStorage.setItem('admin_ok', '1');
-          loadCMS();
+          document.getElementById('gate').className = 'hidden';
         } else {
           err.textContent = '密码错误';
           err.style.display = 'block';
@@ -105,23 +108,16 @@
           document.getElementById('pw').focus();
         }
       } catch (e) {
-        err.textContent = '验证服务不可用，请稍后重试';
+        err.textContent = '验证服务不可用';
         err.style.display = 'block';
       }
-    }
-
-    function loadCMS() {
-      document.getElementById('gate').style.display = 'none';
-      document.getElementById('nc-root').style.display = '';
-      // Load Decap CMS
-      var s = document.createElement('script');
-      s.src = 'https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js';
-      document.body.appendChild(s);
     }
 
     document.getElementById('pw').addEventListener('keydown', function(e) {
       if (e.key === 'Enter') verify();
     });
   </script>
+
+  <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
 </body>
 </html>
