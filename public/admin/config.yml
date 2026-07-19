@@ -7,6 +7,12 @@ backend:
 media_folder: "public/images"
 public_folder: "/images"
 
+site_url: https://geek.tzyday.com
+display_url: geek.tzyday.com
+logo_url: https://geek.tzyday.com/favicon.ico
+
+locale: zh_Hans
+
 collections:
   - name: "posts"
     label: "文章"
