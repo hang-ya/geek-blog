@@ -5,42 +5,48 @@ export default function HomePage() {
   const posts = getAllPosts();
 
   return (
-    <div className="max-w-2xl mx-auto px-5 py-12">
-      <section className="mb-12">
-        <h1 className="text-2xl font-bold text-text">文章</h1>
-        <p className="mt-2 text-text-secondary leading-relaxed">
-          技术笔记、工具推荐、阅读思考。不追热点，只写值得沉淀的东西。
+    <div className="max-w-2xl mx-auto px-5 py-14">
+      <header className="mb-12">
+        <h1 className="text-3xl font-bold text-text tracking-tight">文章</h1>
+        <p className="mt-3 text-text-secondary">
+          技术笔记、工具推荐、阅读思考。
         </p>
-      </section>
+      </header>
 
-      <section>
-        {posts.length === 0 ? (
-          <div className="text-center py-16 text-text-muted">
-            <p>还没有文章。</p>
-          </div>
-        ) : (
-          <ul className="space-y-6">
-            {posts.map((post) => (
-              <li key={post.slug}>
-                <Link href={`/posts/${post.slug}`} className="group block">
-                  <h2 className="text-lg font-semibold text-text group-hover:text-accent transition-colors">
-                    {post.title}
-                  </h2>
-                  <p className="mt-1 text-sm text-text-secondary leading-relaxed">
-                    {post.description}
-                  </p>
-                  <div className="mt-1.5 flex items-center gap-3 text-xs text-text-muted font-mono">
-                    <time dateTime={post.date}>{post.date}</time>
-                    {post.tags.length > 0 && (
-                      <span>{post.tags.map((t: string) => `#${t}`).join(" ")}</span>
-                    )}
+      {posts.length === 0 ? (
+        <p className="text-center py-16 text-text-muted">还没有文章。</p>
+      ) : (
+        <div className="space-y-0">
+          {posts.map((post, i) => (
+            <article
+              key={post.slug}
+              className={i > 0 ? "border-t border-border-light" : ""}
+            >
+              <Link
+                href={`/posts/${post.slug}`}
+                className="block py-5 group"
+              >
+                <div className="flex items-baseline gap-4">
+                  <time
+                    dateTime={post.date}
+                    className="shrink-0 text-sm text-text-muted font-mono tabular-nums"
+                  >
+                    {post.date}
+                  </time>
+                  <div className="min-w-0">
+                    <h2 className="text-base font-semibold text-text group-hover:text-accent transition-colors leading-snug">
+                      {post.title}
+                    </h2>
+                    <p className="mt-1 text-sm text-text-secondary leading-relaxed line-clamp-2">
+                      {post.description}
+                    </p>
                   </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+                </div>
+              </Link>
+            </article>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

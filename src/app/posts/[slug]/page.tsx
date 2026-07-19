@@ -20,20 +20,20 @@ export default async function PostPage({ params }: Props) {
   const html = renderMarkdown(post.content);
 
   return (
-    <div className="max-w-2xl mx-auto px-5 py-12">
+    <div className="max-w-2xl mx-auto px-5 py-14">
       <Link
         href="/"
-        className="inline-flex items-center gap-1 text-sm text-text-muted hover:text-accent transition-colors font-mono mb-8"
+        className="inline-flex items-center gap-1 text-sm text-text-muted hover:text-accent transition-colors font-mono mb-10"
       >
         ← cd ..
       </Link>
 
-      <header className="mb-8">
-        <h1 className="text-2xl font-bold text-text leading-tight">
+      <header className="mb-10">
+        <h1 className="text-2xl sm:text-3xl font-bold text-text leading-tight tracking-tight">
           {post.title}
         </h1>
-        <div className="mt-3 flex flex-wrap items-center gap-3 text-xs font-mono">
-          <time dateTime={post.date} className="text-text-secondary">{post.date}</time>
+        <div className="mt-4 flex items-center gap-3 text-sm font-mono text-text-muted">
+          <time dateTime={post.date}>{post.date}</time>
           {post.tags.length > 0 && (
             <span className="text-accent">
               {post.tags.map((t: string) => `#${t}`).join(" ")}
@@ -41,13 +41,15 @@ export default async function PostPage({ params }: Props) {
           )}
         </div>
         {post.description && (
-          <p className="mt-3 text-text-secondary italic">{post.description}</p>
+          <p className="mt-4 text-text-secondary leading-relaxed">
+            {post.description}
+          </p>
         )}
       </header>
 
       <article className="prose" dangerouslySetInnerHTML={{ __html: html }} />
 
-      <hr className="mt-12 mb-8 border-border" />
+      <hr className="mt-14 mb-8 border-border" />
 
       <footer className="flex items-center justify-between text-sm font-mono">
         <Link href="/" className="text-text-muted hover:text-accent transition-colors">
@@ -59,7 +61,7 @@ export default async function PostPage({ params }: Props) {
           rel="noopener noreferrer"
           className="text-text-muted hover:text-accent transition-colors"
         >
-          编辑 →
+          编辑
         </a>
       </footer>
     </div>
