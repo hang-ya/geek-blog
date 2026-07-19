@@ -2,7 +2,7 @@ backend:
   name: github
   repo: hang-ya/geek-blog
   branch: main
-  base_url: https://geek-oauth.3585770584.workers.dev
+  base_url: https://api.netlify.com
 
 media_folder: "public/images"
 public_folder: "/images"

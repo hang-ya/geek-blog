@@ -84,14 +84,19 @@ export default {
       try {
         const token = await exchangeCode(code, env.GITHUB_CLIENT_ID, env.GITHUB_CLIENT_SECRET);
 
-        // Decap CMS expects postMessage with { token } object
+        // Send token back to Decap CMS via postMessage
         const script = `<script>
+          console.log("OAuth callback: sending token to opener");
           try {
-            window.opener.postMessage(${JSON.stringify({ token })}, "*");
+            if (window.opener && window.opener !== window) {
+              window.opener.postMessage(${JSON.stringify({ token })}, "*");
+              document.body.innerHTML += '<p style="color:#3fb950;margin-top:12px">✅ 已通知主页面，请关闭此窗口</p>';
+            } else {
+              document.body.innerHTML += '<p style="color:#f85149;margin-top:12px">⚠ 未检测到主窗口，请手动复制 token 后关闭</p>';
+            }
           } catch(e) {
-            console.error("postMessage failed:", e);
+            document.body.innerHTML += '<p style="color:#f85149;margin-top:12px">发送失败: ' + e.message + '</p>';
           }
-          setTimeout(function(){ window.close(); }, 500);
         </script>`;
 
         return new Response(renderPage("授权成功", "<p>✅ 授权成功</p><p style='color:#8b949e;font-size:14px'>窗口即将关闭…</p>", script), {
