@@ -8,6 +8,7 @@ export interface PostMeta {
   date: string;
   description: string;
   tags: string[];
+  collection?: string;
   draft?: boolean;
 }
 
@@ -31,6 +32,7 @@ export function getAllPosts(): PostMeta[] {
       date: data.date || "",
       description: data.description || "",
       tags: data.tags || [],
+      collection: data.collection || undefined,
       draft: data.draft === true,
     } as PostMeta;
   });
@@ -74,6 +76,7 @@ export function getPostBySlug(slug: string): Post | null {
     date: data.date || "",
     description: data.description || "",
     tags: data.tags || [],
+    collection: data.collection || undefined,
     draft: data.draft === true,
     content,
   };

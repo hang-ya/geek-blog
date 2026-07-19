@@ -13,6 +13,9 @@ logo_url: https://geek.tzyday.com/favicon.ico
 
 locale: zh_Hans
 
+editor:
+  preview: true
+
 collections:
   - name: "posts"
     label: "文章"
@@ -20,13 +23,47 @@ collections:
     folder: "content/posts"
     create: true
     slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    editor:
+      preview: true
     fields:
-      - { label: "标题", name: "title", widget: "string" }
-      - { label: "日期", name: "date", widget: "datetime", format: "YYYY-MM-DD", date_format: "YYYY-MM-DD", time_format: false }
-      - { label: "摘要", name: "description", widget: "text" }
-      - { label: "标签", name: "tags", widget: "list", default: ["随笔"] }
-      - { label: "草稿", name: "draft", widget: "boolean", default: false, required: false }
-      - { label: "正文", name: "body", widget: "markdown" }
+      - label: "标题"
+        name: title
+        widget: string
+        hint: "文章标题，简洁有力"
+      - label: "日期"
+        name: date
+        widget: datetime
+        format: "YYYY-MM-DD"
+        date_format: "YYYY-MM-DD"
+        time_format: false
+      - label: "摘要"
+        name: description
+        widget: text
+        hint: "一句话描述文章内容，会显示在首页列表"
+      - label: "标签"
+        name: tags
+        widget: list
+        default: ["随笔"]
+        hint: "按回车添加标签，如：技术、阅读、工具"
+      - label: "所属合集"
+        name: collection
+        widget: relation
+        collection: collections
+        search_fields: ["title"]
+        value_field: "slug"
+        display_fields: ["title"]
+        required: false
+        hint: "可选，选择这篇文章所属的合集"
+      - label: "草稿"
+        name: draft
+        widget: boolean
+        default: false
+        required: false
+        hint: "草稿不会在网站上显示"
+      - label: "正文"
+        name: body
+        widget: markdown
+        hint: "Markdown 格式，支持代码块、图片、表格等"
 
   - name: "collections"
     label: "合集"
@@ -34,10 +71,34 @@ collections:
     folder: "content/collections"
     create: true
     slug: "{{slug}}"
+    editor:
+      preview: false
     fields:
-      - { label: "标题", name: "title", widget: "string" }
-      - { label: "描述", name: "description", widget: "text" }
-      - { label: "日期", name: "date", widget: "datetime", format: "YYYY-MM-DD", date_format: "YYYY-MM-DD", time_format: false }
-      - { label: "封面图", name: "cover", widget: "image", required: false }
-      - { label: "文章 slug 列表", name: "posts", widget: "list", hint: "按顺序填入文章 slug（文件名去掉 .md）" }
-      - { label: "草稿", name: "draft", widget: "boolean", default: false, required: false }
+      - label: "标题"
+        name: title
+        widget: string
+        hint: "合集名称，如「前端入门系列」"
+      - label: "描述"
+        name: description
+        widget: text
+        hint: "简单介绍这个合集的内容"
+      - label: "日期"
+        name: date
+        widget: datetime
+        format: "YYYY-MM-DD"
+        date_format: "YYYY-MM-DD"
+        time_format: false
+      - label: "封面图"
+        name: cover
+        widget: image
+        required: false
+        hint: "可选，合集的封面图片"
+      - label: "文章 slug 列表"
+        name: posts
+        widget: list
+        hint: "按顺序填入文章 slug（文件名去掉 .md 后缀）"
+      - label: "草稿"
+        name: draft
+        widget: boolean
+        default: false
+        required: false
