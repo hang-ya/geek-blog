@@ -15,6 +15,32 @@ export default {
     const path = url.pathname;
     const origin = url.origin;
 
+    // POST /verify → check admin password
+    if (path === "/verify" && request.method === "POST") {
+      try {
+        const { password } = await request.json();
+        if (password === env.ADMIN_PASSWORD) {
+          return new Response(JSON.stringify({ ok: true }), {
+            headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+          });
+        }
+        return new Response(JSON.stringify({ ok: false, error: "密码错误" }), {
+          status: 401, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+        });
+      } catch {
+        return new Response(JSON.stringify({ ok: false }), {
+          status: 400, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+        });
+      }
+    }
+
+    // OPTIONS /verify → CORS preflight
+    if (path === "/verify" && request.method === "OPTIONS") {
+      return new Response(null, {
+        headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type" },
+      });
+    }
+
     // GET / → health check
     if (path === "/") {
       return new Response(htmlPage("Geek OAuth 代理正常 ✅"), {
