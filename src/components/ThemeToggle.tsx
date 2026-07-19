@@ -22,7 +22,8 @@ export function ThemeToggle() {
     <button
       onClick={toggle}
       aria-label="切换主题"
-      className="text-sm text-text-muted hover:text-text transition-colors font-mono"
+      className="text-xl text-text-muted hover:text-text transition-colors leading-none"
+      title={dark ? "浅色模式" : "深色模式"}
     >
       {dark ? "☀" : "☾"}
     </button>
