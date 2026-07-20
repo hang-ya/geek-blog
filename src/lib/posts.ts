@@ -30,7 +30,7 @@ export function getAllPosts(): PostMeta[] {
     return {
       slug: file.replace(/\.md$/, ""),
       title: data.title || "",
-      date: data.date || "",
+      date: typeof data.date === 'string' ? data.date : data.date ? data.date.toISOString().slice(0, 10) : "",
       description: data.description || "",
       tags: data.tags || [],
       collection: data.collection || undefined,

@@ -58,7 +58,7 @@ export function getAllCollections(): CollectionMeta[] {
         slug,
         title: data.title || "",
         description: data.description || "",
-        date: data.date || "",
+        date: typeof data.date === 'string' ? data.date : data.date ? data.date.toISOString().slice(0, 10) : "",
         cover: data.cover || undefined,
         posts: resolvePosts(slug, data.posts || []),
         draft: data.draft === true,
