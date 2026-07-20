@@ -75,7 +75,7 @@ export function getPostBySlug(slug: string): Post | null {
   return {
     slug,
     title: data.title || "",
-    date: data.date || "",
+    date: typeof data.date === 'string' ? data.date : data.date ? data.date.toISOString().slice(0, 10) : "",
     description: data.description || "",
     tags: data.tags || [],
     collection: data.collection || undefined,

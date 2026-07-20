@@ -29,7 +29,12 @@ collections:
       - label: "标题"
         name: title
         widget: string
-        hint: "文章标题，简洁有力"
+        hint: "文章标题（支持中文）"
+      - label: "URL Slug"
+        name: slug
+        widget: string
+        hint: "英文短标识，如 hello-world。用于网址，不要用中文"
+        pattern: ["^[a-zA-Z0-9_-]+$", "只能使用英文、数字、- 和 _"]
       - label: "日期"
         name: date
         widget: datetime
@@ -82,7 +87,12 @@ collections:
       - label: "标题"
         name: title
         widget: string
-        hint: "合集名称，如「前端入门系列」"
+        hint: "合集名称（支持中文），如「前端入门系列」"
+      - label: "URL Slug"
+        name: slug
+        widget: string
+        hint: "英文短标识，如 frontend-intro。用于网址，不要用中文"
+        pattern: ["^[a-zA-Z0-9_-]+$", "只能使用英文、数字、- 和 _"]
       - label: "描述"
         name: description
         widget: text
