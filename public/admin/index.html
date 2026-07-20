@@ -94,7 +94,7 @@
       document.getElementById('gate').className = 'done';
       if (!window._cmsInited) {
         window._cmsInited = true;
-        window.CMS.init({ config: { load_config_file: true } });
+        window.CMS.init();
         injectRefresh();
       }
     }
