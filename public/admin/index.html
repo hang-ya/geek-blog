@@ -94,34 +94,46 @@
       document.getElementById('gate').className = 'done';
       if (!window._cmsInited) {
         window._cmsInited = true;
-        window.CMS.init();
+        // Register auto-fill slug widget before CMS init
+        registerSlugWidget();
+        var cms = window.CMS.init();
         injectRefresh();
-        autoFillSlug();
       }
     }
 
-    // Auto-fill slug field with random safe value when creating a new post
-    function autoFillSlug() {
-      var timer = setInterval(function() {
-        var inputs = document.querySelectorAll('input[type="text"]');
-        for (var i = 0; i < inputs.length; i++) {
-          var input = inputs[i];
-          // Find the slug field by its placeholder or nearby label
-          var parent = input.closest('[class*="field"]') || input.parentNode;
-          if (!parent) continue;
-          var label = parent.querySelector('label');
-          if (label && label.textContent.includes('自定义链接') && !input.dataset.slugReady) {
-            input.dataset.slugReady = '1';
-            // Auto-fill only if empty (new post)
-            if (!input.value || input.value.trim() === '') {
-              input.value = Math.random().toString(36).substring(2, 8);
-            }
-            // Mark as auto-generated so user can edit
-            input.placeholder = input.value || 'auto-generated';
+    // Custom slug widget — always has a safe default value
+    function registerSlugWidget() {
+      var h = window.React.createElement;
+      if (!h) return;
+
+      var SlugControl = function(props) {
+        var ref = window.React.useRef(null);
+        var [val, setVal] = window.React.useState(props.value || '');
+
+        // Auto-generate safe slug if empty
+        window.React.useEffect(function() {
+          if (!props.value || props.value.trim() === '') {
+            var generated = Math.random().toString(36).substring(2, 8);
+            setVal(generated);
+            props.onChange(generated);
           }
-        }
-      }, 800);
-      setTimeout(function() { clearInterval(timer); }, 30000);
+        }, []);
+
+        return h('input', {
+          ref: ref,
+          type: 'text',
+          id: props.forID,
+          className: props.classNameWrapper,
+          value: val,
+          placeholder: val || 'auto-generated',
+          onChange: function(e) {
+            setVal(e.target.value);
+            props.onChange(e.target.value);
+          }
+        });
+      };
+
+      window.CMS.registerWidget('slug-auto', SlugControl, null);
     }
 
     // Add refresh button next to relation widgets
