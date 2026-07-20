@@ -22,8 +22,7 @@ collections:
     label_singular: "文章"
     folder: "content/posts"
     create: true
-    identifier_field: "slug"
-    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    slug: "{{year}}-{{month}}-{{day}}-{{hour}}-{{minute}}"
     summary: "{{title}}"
     editor:
       preview: true
@@ -34,8 +33,9 @@ collections:
         hint: "文章标题（支持中文）"
       - label: "自定义链接"
         name: slug
-        widget: slug-auto
-        hint: "留空自动生成。填英文如 py-intro，网址变成 .../20-py-intro"
+        widget: string
+        required: false
+        hint: "可选的英文短标识，用于 frontmatter。URL 用时间自动生成"
       - label: "日期"
         name: date
         widget: datetime
