@@ -95,7 +95,42 @@
       if (!window._cmsInited) {
         window._cmsInited = true;
         window.CMS.init({ config: { load_config_file: true } });
+        injectRefresh();
       }
+    }
+
+    // Add refresh button next to relation widgets
+    function injectRefresh() {
+      var timer = setInterval(function() {
+        // Find all field labels in the editor
+        var labels = document.querySelectorAll('label');
+        for (var i = 0; i < labels.length; i++) {
+          var label = labels[i];
+          if (!label.textContent) continue;
+          // Match relation fields that need refresh (所属合集, 文章列表)
+          if ((label.textContent.includes('所属合集') || label.textContent.includes('文章列表'))
+              && !label.parentNode.querySelector('.cms-refresh-btn')) {
+            var btn = document.createElement('button');
+            btn.className = 'cms-refresh-btn';
+            btn.textContent = '🔄';
+            btn.title = '刷新列表（新建合集/文章后点此更新下拉选项）';
+            btn.style.cssText =
+              'margin-left:6px;padding:0 6px;background:none;border:1px solid #30363d;' +
+              'border-radius:4px;color:#8b949e;cursor:pointer;font-size:14px;line-height:22px;';
+            btn.onmouseenter = function() { this.style.color = '#58a6ff'; this.style.borderColor = '#58a6ff'; };
+            btn.onmouseleave = function() { this.style.color = '#8b949e'; this.style.borderColor = '#30363d'; };
+            btn.onclick = function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              // Reload page — browser will warn if there are unsaved changes
+              location.reload();
+            };
+            label.appendChild(btn);
+          }
+        }
+      }, 600);
+      // Stop looking after 60s
+      setTimeout(function() { clearInterval(timer); }, 60000);
     }
 
     document.getElementById('pw').addEventListener('keydown', function(e) {

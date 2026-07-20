@@ -58,7 +58,7 @@ collections:
         value_field: "slug"
         display_fields: ["title"]
         required: false
-        hint: "可选，选择这篇文章所属的合集"
+        hint: "搜索选择合集。新建合集后点右侧 🔄 刷新即可看到"
       - label: "草稿"
         name: draft
         widget: boolean
@@ -98,15 +98,6 @@ collections:
         widget: image
         required: false
         hint: "可选，合集的封面图片"
-      - label: "文章列表"
-        name: posts
-        widget: relation
-        collection: posts
-        search_fields: ["title"]
-        value_field: "slug"
-        display_fields: ["title"]
-        multiple: true
-        hint: "搜索并选择文章，可拖拽排序"
       - label: "草稿"
         name: draft
         widget: boolean
