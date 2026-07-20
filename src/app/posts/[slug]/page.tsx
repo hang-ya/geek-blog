@@ -17,7 +17,7 @@ export default async function PostPage({ params }: Props) {
   if (!post) notFound();
   const html = renderMarkdown(post.content);
 
-  const collectionSlug = post.collection || getCollectionsForPost(slug)[0]?.slug;
+  const collectionSlug = post.series || getCollectionsForPost(slug)[0]?.slug;
   const series = collectionSlug ? getCollectionBySlug(collectionSlug) : null;
   const adjacent = series ? getAdjacentPosts(series, slug) : { prev: null, next: null };
   const seriesIndex = series ? series.posts.indexOf(slug) + 1 : 0;

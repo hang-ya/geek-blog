@@ -56,14 +56,14 @@ collections:
         default: ["随笔"]
         hint: "按回车添加标签，如：技术、阅读、工具"
       - label: "所属合集"
-        name: collection
+        name: series
         widget: relation
         collection: collections
         search_fields: ["title"]
         value_field: "slug"
         display_fields: ["title"]
         required: false
-        hint: "搜索选择合集。新建合集后点右侧 🔄 刷新即可看到"
+        hint: "搜索并选择合集。输入合集名称关键词来搜索"
       - label: "草稿"
         name: draft
         widget: boolean

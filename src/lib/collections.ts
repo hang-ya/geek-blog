@@ -31,7 +31,7 @@ const DIR = path.join(process.cwd(), "content", "collections");
 function resolvePosts(slug: string, explicitPosts: string[]): string[] {
   const allPosts = getAllPosts();
   const derived = allPosts
-    .filter((p) => p.collection === slug)
+    .filter((p) => p.series === slug)
     .map((p) => p.slug);
 
   // Merge: derived first, then explicit ones not already in derived

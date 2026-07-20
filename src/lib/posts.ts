@@ -8,7 +8,7 @@ export interface PostMeta {
   date: string;
   description: string;
   tags: string[];
-  collection?: string;
+  series?: string;
   cover?: string;
   draft?: boolean;
 }
@@ -33,7 +33,7 @@ export function getAllPosts(): PostMeta[] {
       date: typeof data.date === 'string' ? data.date : data.date ? data.date.toISOString().slice(0, 10) : "",
       description: data.description || "",
       tags: data.tags || [],
-      collection: data.collection || undefined,
+      series: data.series || undefined,
       cover: data.cover || undefined,
       draft: data.draft === true,
     } as PostMeta;
@@ -78,7 +78,7 @@ export function getPostBySlug(slug: string): Post | null {
     date: typeof data.date === 'string' ? data.date : data.date ? data.date.toISOString().slice(0, 10) : "",
     description: data.description || "",
     tags: data.tags || [],
-    collection: data.collection || undefined,
+    series: data.series || undefined,
     draft: data.draft === true,
     content,
   };
