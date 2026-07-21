@@ -31,11 +31,6 @@ collections:
         name: title
         widget: string
         hint: "文章标题（支持中文）"
-      - label: "自定义链接"
-        name: slug
-        widget: string
-        required: false
-        hint: "可选的英文短标识，用于 frontmatter。URL 用时间自动生成"
       - label: "日期"
         name: date
         widget: datetime
@@ -109,6 +104,23 @@ collections:
         widget: image
         required: false
         hint: "可选，合集的封面图片"
+      - label: "正文"
+        name: body
+        widget: markdown
+        required: false
+        hint: "合集介绍或详细说明（支持 Markdown），会显示在合集页面顶部"
+      - label: "文章列表"
+        name: posts
+        widget: list
+        required: false
+        hint: "手动拖拽排列合集内的文章。留空则自动从文章的「所属合集」字段派生"
+        field:
+          name: post
+          widget: relation
+          collection: posts
+          search_fields: ["title"]
+          value_field: "{{slug}}"
+          display_fields: ["title"]
       - label: "草稿"
         name: draft
         widget: boolean

@@ -9,11 +9,13 @@ export interface CollectionMeta {
   description: string;
   date: string;
   cover?: string;
+  body?: string;   // markdown body content
   posts: string[]; // post slugs (derived from posts that reference this collection)
   draft?: boolean;
 }
 
 export interface Collection extends CollectionMeta {
+  body?: string;
   posts: string[];
 }
 
@@ -21,12 +23,11 @@ const DIR = path.join(process.cwd(), "content", "collections");
 
 /**
  * Derive the post list for a collection from two sources:
- * 1. Posts that declare `collection: <this-slug>` in their frontmatter (primary)
- * 2. The collection's own `posts` field (for manual override / ordering)
+ * 1. The collection's own `posts` field (from CMS list widget — primary, preserves manual order)
+ * 2. Posts that declare `series: <this-slug>` in their frontmatter (auto-derived)
  *
- * Posts from source 1 are prepended; source 2 entries not already included are appended.
- * This means posts automatically appear in their collection when you set the
- * `collection` field on the post — no need to edit the collection file.
+ * When an explicit posts list exists, it takes priority and remaining derived posts
+ * are appended. When no explicit list, posts are derived purely from the series field.
  */
 function resolvePosts(slug: string, explicitPosts: string[]): string[] {
   const allPosts = getAllPosts();
@@ -34,16 +35,33 @@ function resolvePosts(slug: string, explicitPosts: string[]): string[] {
     .filter((p) => p.series === slug)
     .map((p) => p.slug);
 
-  // Merge: derived first, then explicit ones not already in derived
-  const seen = new Set(derived);
-  const merged = [...derived];
-  for (const s of explicitPosts) {
+  // If no explicit list, use purely derived order (backward compatible)
+  if (!explicitPosts || explicitPosts.length === 0) {
+    return derived;
+  }
+
+  // Explicit order takes priority; append any derived posts not already in the list
+  const seen = new Set(explicitPosts);
+  const merged = [...explicitPosts];
+  for (const s of derived) {
     if (!seen.has(s)) {
       merged.push(s);
       seen.add(s);
     }
   }
   return merged;
+}
+
+/** Extract post slugs from CMS list widget format or plain string array */
+function extractPostSlugs(rawPosts: unknown): string[] {
+  if (!Array.isArray(rawPosts)) return [];
+  return rawPosts.map((p: unknown) => {
+    if (typeof p === 'string') return p;
+    if (p && typeof p === 'object' && 'post' in (p as Record<string, unknown>)) {
+      return (p as Record<string, unknown>).post as string;
+    }
+    return '';
+  }).filter(Boolean);
 }
 
 export function getAllCollections(): CollectionMeta[] {
@@ -60,7 +78,7 @@ export function getAllCollections(): CollectionMeta[] {
         description: data.description || "",
         date: typeof data.date === 'string' ? data.date : data.date ? data.date.toISOString().slice(0, 10) : "",
         cover: data.cover || undefined,
-        posts: resolvePosts(slug, data.posts || []),
+        posts: resolvePosts(slug, extractPostSlugs(data.posts)),
         draft: data.draft === true,
       };
     })
@@ -72,15 +90,16 @@ export function getCollectionBySlug(slug: string): Collection | null {
   const file = path.join(DIR, `${slug}.md`);
   if (!fs.existsSync(file)) return null;
   const raw = fs.readFileSync(file, "utf-8");
-  const { data } = matter(raw);
+  const { data, content } = matter(raw);
   if (data.draft) return null;
   return {
     slug,
     title: data.title || "",
     description: data.description || "",
-    date: data.date || "",
+    date: typeof data.date === 'string' ? data.date : data.date ? data.date.toISOString().slice(0, 10) : "",
     cover: data.cover || undefined,
-    posts: resolvePosts(slug, data.posts || []),
+    body: content?.trim() || undefined,
+    posts: resolvePosts(slug, extractPostSlugs(data.posts)),
   };
 }
 
