@@ -14,7 +14,7 @@ logo_url: https://geek.tzyday.com/favicon.ico
 locale: zh_Hans
 
 editor:
-  preview: true
+  preview: false
 
 collections:
   - name: "posts"
@@ -22,7 +22,7 @@ collections:
     label_singular: "文章"
     folder: "content/posts"
     create: true
-    slug: "{{year}}-{{month}}-{{day}}-{{hour}}-{{minute}}"
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
     summary: "{{title}}"
     editor:
       preview: true
@@ -84,11 +84,6 @@ collections:
         name: title
         widget: string
         hint: "合集名称（支持中文），如「前端入门系列」"
-      - label: "URL Slug"
-        name: slug
-        widget: string
-        hint: "英文短标识，如 frontend-intro。用于网址，不要用中文"
-        pattern: ["^[a-zA-Z0-9_-]+$", "只能使用英文、数字、- 和 _"]
       - label: "描述"
         name: description
         widget: text
