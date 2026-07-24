@@ -1,0 +1,843 @@
+---
+title: Python 中的作用域（Scope）——变量到底能在哪里使用？
+date: 2026-07-24
+description: 作用域（Scope）决定了一个变量可以在哪些地方被访问。Python 按照 LEGB 规则寻找变量：Local（局部）→
+  Enclosing（封闭）→ Global（全局）→ Built-in（内置）。理解作用域可以避免 NameError，也能帮助你正确使用 global 和
+  nonlocal。
+tags:
+  - 随笔
+series: python-basics
+draft: false
+---
+# Python 中的作用域（Scope）是什么？
+
+## 什么是作用域？
+
+在 Python 中，**作用域（Scope）** 指的是：
+
+> **变量在哪些地方可以使用，哪些地方不能使用。**
+
+你可以把作用域理解成变量的"活动范围"。
+
+举个生活中的例子：
+
+假设你在自己房间放了一本书。
+
+- 你在房间里可以找到它。
+- 客厅里找不到它。
+- 如果把书放在客厅，那么家里所有人都能看到。
+
+变量也是一样：
+
+- 有些变量只能在函数里面使用。
+- 有些变量整个程序都可以使用。
+- Python 会按照一定顺序寻找变量。
+
+---
+
+# Python 查找变量的规则 —— LEGB
+
+Python 查找变量时，不是随便找，而是按照固定顺序：
+
+| 顺序 | 名称 | 英文 | 作用范围 |
+|------|------|------|-----------|
+| ① | Local | 局部作用域 | 当前函数内部 |
+| ② | Enclosing | 封闭作用域 | 外层函数 |
+| ③ | Global | 全局作用域 | 当前 Python 文件 |
+| ④ | Built-in | 内置作用域 | Python 自带内容 |
+
+记住一句口诀：
+
+> **L → E → G → B**
+
+Python 永远都是按照这个顺序寻找变量。
+
+---
+
+# 一、Local（局部作用域）
+
+局部作用域就是：
+
+> **函数里面定义的变量。**
+
+这种变量只能在函数里面使用。
+
+例如：
+
+```python
+def my_func():
+    my_var = 10
+    print(my_var)
+
+my_func()
+```
+
+输出：
+
+```text
+10
+```
+
+因为：
+
+```
+my_func()
+│
+├── my_var = 10
+└── print(my_var)
+```
+
+变量只存在于这个函数里。
+
+---
+
+## 函数外面不能访问局部变量
+
+例如：
+
+```python
+def my_func():
+    my_var = 10
+
+print(my_var)
+```
+
+运行结果：
+
+```text
+NameError
+```
+
+为什么？
+
+因为：
+
+```
+my_var
+│
+└── 只存在 my_func() 内
+```
+
+函数结束以后：
+
+```
+my_func()
+结束
+
+↓
+
+my_var 消失
+```
+
+所以外面找不到。
+
+---
+
+## 小结
+
+局部变量：
+
+✅ 函数里面可以访问
+
+❌ 函数外面不能访问
+
+---
+
+# 二、Enclosing（封闭作用域）
+
+封闭作用域只会出现在：
+
+> **函数里面还有函数（嵌套函数）**
+
+例如：
+
+```python
+def outer():
+
+    msg = "Hello"
+
+    def inner():
+        print(msg)
+
+    inner()
+
+outer()
+```
+
+输出：
+
+```text
+Hello
+```
+
+结构如下：
+
+```
+outer()
+│
+├── msg
+│
+└── inner()
+      │
+      └── 可以访问 msg
+```
+
+因为：
+
+inner 找不到自己的 msg
+
+↓
+
+去外层找
+
+↓
+
+找到 msg
+
+↓
+
+成功打印
+
+---
+
+## 外层不能访问内层变量
+
+例如：
+
+```python
+def outer():
+
+    def inner():
+        res = "Python"
+
+    print(res)
+
+outer()
+```
+
+结果：
+
+```text
+NameError
+```
+
+原因：
+
+```
+outer
+│
+├── inner
+│      │
+│      └── res
+│
+└── print(res)
+```
+
+res 在 inner 里面。
+
+outer 无法访问。
+
+规则：
+
+> 外层可以被内层访问，
+>
+> 但内层变量不能反过来被外层访问。
+
+---
+
+# 修改封闭作用域变量 —— nonlocal
+
+例如：
+
+```python
+def outer():
+
+    count = 0
+
+    def inner():
+        nonlocal count
+        count = 1
+
+    inner()
+
+    print(count)
+
+outer()
+```
+
+输出：
+
+```text
+1
+```
+
+为什么？
+
+默认情况下：
+
+```python
+count = 1
+```
+
+Python 会认为：
+
+这是 inner 自己的新变量。
+
+加上：
+
+```python
+nonlocal count
+```
+
+表示：
+
+> 我要修改外层那个 count。
+
+---
+
+## nonlocal 的作用
+
+作用：
+
+> 修改上一层函数中的变量。
+
+记住：
+
+```
+Local
+
+↓
+
+Enclosing（nonlocal 修改这里）
+
+↓
+
+Global
+```
+
+---
+
+# 三、Global（全局作用域）
+
+全局变量就是：
+
+> 在所有函数外面定义的变量。
+
+例如：
+
+```python
+score = 100
+
+def show():
+    print(score)
+
+show()
+```
+
+输出：
+
+```text
+100
+```
+
+结构：
+
+```
+Global
+
+score =100
+
+↓
+
+所有函数都能看到
+```
+
+---
+
+## 函数可以读取全局变量
+
+例如：
+
+```python
+name = "Tom"
+
+def hello():
+    print(name)
+
+hello()
+```
+
+输出：
+
+```text
+Tom
+```
+
+因为：
+
+函数里面没有 name。
+
+Python：
+
+Local 没有
+
+↓
+
+Enclosing 没有
+
+↓
+
+Global 找到了。
+
+---
+
+# 修改全局变量 —— global
+
+例如：
+
+```python
+count = 10
+
+def change():
+    global count
+    count = 20
+
+change()
+
+print(count)
+```
+
+输出：
+
+```text
+20
+```
+
+如果没有：
+
+```python
+global count
+```
+
+Python 会认为：
+
+```python
+count =20
+```
+
+只是创建了一个新的局部变量。
+
+不会修改全局变量。
+
+---
+
+## global 还能创建新的全局变量
+
+例如：
+
+```python
+def create():
+
+    global age
+
+    age = 18
+
+create()
+
+print(age)
+```
+
+输出：
+
+```text
+18
+```
+
+函数结束以后：
+
+age 依然存在。
+
+---
+
+# global 和 nonlocal 的区别
+
+| 关键字 | 修改谁？ |
+|---------|---------|
+| global | 全局变量 |
+| nonlocal | 外层函数变量 |
+
+例如：
+
+```
+Global
+│
+├── outer()
+│      │
+│      ├── x
+│      │
+│      └── inner()
+```
+
+```
+global
+
+↓
+
+修改 Global
+
+----------------
+
+nonlocal
+
+↓
+
+修改 outer() 的 x
+```
+
+---
+
+# 四、Built-in（内置作用域）
+
+最后一层就是：
+
+Python 自带的名字。
+
+例如：
+
+```python
+print()
+
+len()
+
+type()
+
+str()
+
+int()
+
+float()
+
+range()
+```
+
+这些都是 Python 已经写好的。
+
+例如：
+
+```python
+print(type(3))
+```
+
+输出：
+
+```text
+<class 'int'>
+```
+
+这里：
+
+```
+type
+
+↓
+
+Python 内置函数
+```
+
+我们不用自己写。
+
+---
+
+# Python 查找变量全过程
+
+来看一个例子：
+
+```python
+name = "Global"
+
+def outer():
+
+    name = "Outer"
+
+    def inner():
+
+        name = "Inner"
+
+        print(name)
+
+    inner()
+
+outer()
+```
+
+输出：
+
+```text
+Inner
+```
+
+查找过程：
+
+```
+print(name)
+
+↓
+
+Local
+
+找到 "Inner"
+
+↓
+
+停止寻找
+```
+
+不会继续找。
+
+---
+
+如果改成：
+
+```python
+name = "Global"
+
+def outer():
+
+    name = "Outer"
+
+    def inner():
+
+        print(name)
+
+    inner()
+
+outer()
+```
+
+输出：
+
+```text
+Outer
+```
+
+查找过程：
+
+```
+Local
+
+没有
+
+↓
+
+Enclosing
+
+找到
+
+↓
+
+停止
+```
+
+---
+
+如果继续：
+
+```python
+name = "Global"
+
+def outer():
+
+    def inner():
+
+        print(name)
+
+    inner()
+
+outer()
+```
+
+输出：
+
+```text
+Global
+```
+
+查找：
+
+```
+Local
+
+↓
+
+Enclosing
+
+↓
+
+Global
+
+找到
+```
+
+---
+
+最后：
+
+```python
+print(len("Hello"))
+```
+
+查找：
+
+```
+Local
+
+↓
+
+Enclosing
+
+↓
+
+Global
+
+↓
+
+Built-in
+
+找到 len()
+```
+
+---
+
+# LEGB 查找流程图
+
+```
+开始查找变量
+
+      │
+
+      ▼
+
+Local（当前函数）
+
+      │
+      │ 找到？
+      ├──────► 是：停止
+      │
+      ▼ 否
+
+Enclosing（外层函数）
+
+      │
+      │ 找到？
+      ├──────► 是：停止
+      │
+      ▼ 否
+
+Global（当前文件）
+
+      │
+      │ 找到？
+      ├──────► 是：停止
+      │
+      ▼ 否
+
+Built-in（Python内置）
+
+      │
+      │ 找到？
+      ├──────► 是：停止
+      │
+      ▼ 否
+
+NameError
+```
+
+---
+
+# 常见错误
+
+## ① 在函数外访问局部变量
+
+```python
+def test():
+    x = 10
+
+print(x)
+```
+
+结果：
+
+```text
+NameError
+```
+
+---
+
+## ② 忘记 global
+
+```python
+count = 1
+
+def test():
+    count = 2
+
+test()
+
+print(count)
+```
+
+输出：
+
+```text
+1
+```
+
+这里只创建了新的局部变量。
+
+---
+
+## ③ 忘记 nonlocal
+
+```python
+def outer():
+
+    x = 10
+
+    def inner():
+        x = 20
+
+    inner()
+
+    print(x)
+
+outer()
+```
+
+输出：
+
+```text
+10
+```
+
+因为：
+
+inner 创建的是自己的 x。
+
+没有修改外层。
+
+---
+
+# 本章总结
+
+| 概念 | 作用 |
+|------|------|
+| Local | 当前函数内部变量 |
+| Enclosing | 外层函数变量 |
+| Global | 全局变量，整个文件都能访问 |
+| Built-in | Python 自带函数、关键字等 |
+| global | 修改或创建全局变量 |
+| nonlocal | 修改外层函数变量 |
+| LEGB | Python 查找变量的固定顺序 |
+| NameError | 找不到变量时出现的错误 |
+
+> **记住一句话：Python 查找变量永远遵循 LEGB：Local → Enclosing → Global → Built-in。**
