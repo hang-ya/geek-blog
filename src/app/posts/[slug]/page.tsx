@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getAllPosts, getPostBySlug } from "@/lib/posts";
 import { getCollectionsForPost, getCollectionBySlug, getAdjacentPosts } from "@/lib/collections";
@@ -9,6 +10,23 @@ interface Props { params: Promise<{ slug: string }>; }
 export function generateStaticParams() {
   const posts = getAllPosts();
   return posts.length > 0 ? posts.map((post) => ({ slug: post.slug })) : [{ slug: "_" }];
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const post = getPostBySlug(slug);
+  if (!post) return { title: "文章不存在" };
+  return {
+    title: post.title,
+    description: post.description,
+    openGraph: {
+      title: post.title,
+      description: post.description,
+      type: "article",
+      publishedTime: post.date,
+      tags: post.tags,
+    },
+  };
 }
 
 export default async function PostPage({ params }: Props) {

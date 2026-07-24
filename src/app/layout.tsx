@@ -15,8 +15,10 @@ function ThemeScript() {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="zh-TW" className="h-full">
+    <html lang="zh-CN" className="h-full">
       <head>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
         <ThemeScript />
       </head>
       <body className="min-h-full bg-bg text-text antialiased flex flex-col">

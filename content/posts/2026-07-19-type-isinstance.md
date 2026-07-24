@@ -6,6 +6,7 @@ description: type() 用于查看一个对象的数据类型，返回对象所属
   True 或 False。在编写程序时，这两个函数可以帮助我们检查变量类型，避免因数据类型不匹配而导致程序报错。
 tags:
   - 随笔
+series: python-basics
 draft: false
 ---
 在上一节中，我们学习了 Python 中常见的数据类型，例如字符串（`str`）、整数（`int`）、浮点数（`float`）等。

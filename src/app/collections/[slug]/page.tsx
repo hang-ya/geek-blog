@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getAllCollections, getCollectionBySlug } from "@/lib/collections";
 import { getAllPosts } from "@/lib/posts";
@@ -10,6 +11,16 @@ interface Props { params: Promise<{ slug: string }>; }
 export function generateStaticParams() {
   const cols = getAllCollections();
   return cols.length > 0 ? cols.map((c) => ({ slug: c.slug })) : [{ slug: "_" }];
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const collection = getCollectionBySlug(slug);
+  if (!collection) return { title: "合集不存在" };
+  return {
+    title: collection.title,
+    description: collection.description,
+  };
 }
 
 export default async function CollectionPage({ params }: Props) {

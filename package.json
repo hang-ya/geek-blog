@@ -7,7 +7,7 @@
     "build": "next build && node scripts/build-search-index.mjs",
     "start": "next start",
     "lint": "eslint",
-    "deploy": "next build && wrangler pages deploy out --project-name=tzyday-geek --commit-dirty=true"
+    "deploy": "npm run build && wrangler pages deploy out --project-name=tzyday-geek --commit-dirty=true"
   },
   "dependencies": {
     "gray-matter": "^4.0.3",
