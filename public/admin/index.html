@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -54,11 +54,14 @@
     // Stop Decap CMS from auto-initializing
     window.CMS_MANUAL_INIT = true;
   </script>
-  <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+  <script src="https://unpkg.com/decap-cms@3.14.1/dist/decap-cms.js"></script>
   <script>
     var OAUTH = 'https://geek-oauth.3585770584.workers.dev';
+    var attempts = 0;
+    var MAX_ATTEMPTS = 5;
 
     if (sessionStorage.getItem('admin_ok') === '1') {
+      showLoading();
       initCMS();
     }
 
@@ -66,6 +69,12 @@
       var pw = document.getElementById('pw').value;
       var err = document.getElementById('error');
       if (!pw) return;
+
+      if (attempts >= MAX_ATTEMPTS) {
+        err.textContent = '尝试次数过多，请 15 分钟后再试';
+        err.style.display = 'block';
+        return;
+      }
 
       try {
         var res = await fetch(OAUTH + '/verify', {
@@ -75,19 +84,29 @@
         });
         var data = await res.json();
         if (data.ok) {
+          attempts = 0;
           sessionStorage.setItem('admin_ok', '1');
-          document.getElementById('gate').className = 'done';
+          showLoading();
           initCMS();
         } else {
-          err.textContent = '密码错误';
+          attempts++;
+          var remaining = MAX_ATTEMPTS - attempts;
+          err.textContent = remaining > 0
+            ? '密码错误，还剩 ' + remaining + ' 次机会'
+            : '尝试次数过多，请 15 分钟后再试';
           err.style.display = 'block';
           document.getElementById('pw').value = '';
           document.getElementById('pw').focus();
         }
       } catch (e) {
-        err.textContent = '验证服务不可用';
+        err.textContent = '验证服务不可用，请稍后重试';
         err.style.display = 'block';
       }
+    }
+
+    function showLoading() {
+      var gate = document.getElementById('gate');
+      gate.innerHTML = '<div class="gate-box"><h1>GEEK</h1><p style="color:#8b949e;margin-top:24px;">正在加载编辑器…</p></div>';
     }
 
     function initCMS() {
@@ -95,21 +114,19 @@
       if (!window._cmsInited) {
         window._cmsInited = true;
         window.CMS.init();
-        injectRefresh();
+        observeRelations();
       }
     }
 
-    // Add refresh button next to relation widgets
-    function injectRefresh() {
-      var timer = setInterval(function() {
-        // Find all field labels in the editor
+    // Use MutationObserver instead of 600ms polling to inject refresh button
+    function observeRelations() {
+      var observer = new MutationObserver(function() {
         var labels = document.querySelectorAll('label');
         for (var i = 0; i < labels.length; i++) {
           var label = labels[i];
           if (!label.textContent) continue;
-          // Match relation fields that need refresh (所属合集, 文章列表)
           if ((label.textContent.includes('所属合集') || label.textContent.includes('文章列表'))
-              && !label.parentNode.querySelector('.cms-refresh-btn')) {
+              && !label.querySelector('.cms-refresh-btn')) {
             var btn = document.createElement('button');
             btn.className = 'cms-refresh-btn';
             btn.textContent = '🔄';
@@ -122,15 +139,15 @@
             btn.onclick = function(e) {
               e.preventDefault();
               e.stopPropagation();
-              // Reload page — browser will warn if there are unsaved changes
               location.reload();
             };
             label.appendChild(btn);
           }
         }
-      }, 600);
-      // Stop looking after 60s
-      setTimeout(function() { clearInterval(timer); }, 60000);
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+      // Stop observing after 60s (editor should be fully loaded by then)
+      setTimeout(function() { observer.disconnect(); }, 60000);
     }
 
     document.getElementById('pw').addEventListener('keydown', function(e) {

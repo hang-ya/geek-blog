@@ -25,7 +25,7 @@ collections:
     slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
     summary: "{{title}}"
     editor:
-      preview: true
+      preview: false
     fields:
       - label: "标题"
         name: title
@@ -36,7 +36,6 @@ collections:
         widget: datetime
         format: "YYYY-MM-DD"
         date_format: "YYYY-MM-DD"
-        time_format: false
       - label: "摘要"
         name: description
         widget: text
@@ -93,7 +92,6 @@ collections:
         widget: datetime
         format: "YYYY-MM-DD"
         date_format: "YYYY-MM-DD"
-        time_format: false
       - label: "封面图"
         name: cover
         widget: image
