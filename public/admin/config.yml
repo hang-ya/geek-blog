@@ -13,9 +13,6 @@ logo_url: https://geek.tzyday.com/favicon.ico
 
 locale: zh_Hans
 
-editor:
-  preview: false
-
 collections:
   - name: "posts"
     label: "文章"
@@ -25,7 +22,7 @@ collections:
     slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
     summary: "{{title}}"
     editor:
-      preview: false
+      preview: true
     fields:
       - label: "标题"
         name: title
@@ -77,7 +74,7 @@ collections:
     create: true
     slug: "{{slug}}"
     editor:
-      preview: false
+      preview: true
     fields:
       - label: "标题"
         name: title
