@@ -22,27 +22,52 @@ export interface Collection extends CollectionMeta {
 const DIR = path.join(process.cwd(), "content", "collections");
 
 /**
- * Derive the post list for a collection from posts that declare
- * `series: <this-slug>` in their frontmatter. The collection's own
- * `posts` field (if any) can supplement with additional manual entries.
- * Derived posts come first; explicit entries not already covered are appended.
+ * Resolve the ordered post list for a collection.
+ *
+ * Membership is determined by the post's own `series` field.
+ * Order is determined by the collection's `posts` field (a list of slugs
+ * or `{post: slug}` objects from the CMS list widget).
+ *
+ * - Posts listed explicitly come first, in list order.
+ * - Remaining posts with `series: <this-slug>` are appended, sorted by
+ *   date (newest first).
  */
-function resolvePosts(slug: string, explicitPosts: string[]): string[] {
+function resolvePosts(slug: string, explicitPosts: unknown[]): string[] {
   const allPosts = getAllPosts();
+
+  // Normalize explicit posts: they may be plain strings or {post: slug} objects
+  const orderSlugs: string[] = (explicitPosts || [])
+    .map((item: unknown) =>
+      typeof item === "string" ? item : (item as Record<string, string>)?.post || ""
+    )
+    .filter(Boolean);
+
+  // All posts that declare this collection via their `series` field
   const derived = allPosts
     .filter((p) => p.series === slug)
     .map((p) => p.slug);
 
-  // Merge: derived first, then explicit ones not already in derived
-  const seen = new Set(derived);
-  const merged = [...derived];
-  for (const s of explicitPosts) {
-    if (!seen.has(s)) {
-      merged.push(s);
-      seen.add(s);
-    }
+  if (orderSlugs.length > 0) {
+    const orderSet = new Set(orderSlugs);
+    // Start with explicitly ordered posts that actually belong
+    const ordered = orderSlugs.filter((s) => derived.includes(s));
+    // Append remaining derived posts not in the order list, by date desc
+    const remaining = derived
+      .filter((s) => !orderSet.has(s))
+      .sort((a, b) => {
+        const postA = allPosts.find((p) => p.slug === a);
+        const postB = allPosts.find((p) => p.slug === b);
+        return (postB?.date || "").localeCompare(postA?.date || "");
+      });
+    return [...ordered, ...remaining];
   }
-  return merged;
+
+  // No explicit order → sort by date (newest first)
+  return derived.sort((a, b) => {
+    const postA = allPosts.find((p) => p.slug === a);
+    const postB = allPosts.find((p) => p.slug === b);
+    return (postB?.date || "").localeCompare(postA?.date || "");
+  });
 }
 
 export function getAllCollections(): CollectionMeta[] {

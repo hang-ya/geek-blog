@@ -94,6 +94,19 @@ collections:
         widget: image
         required: false
         hint: "可选，合集的封面图片"
+      - label: "文章排序"
+        name: posts
+        widget: list
+        hint: "拖拽调整文章在合集页面的显示顺序。未列出的文章（但其「所属合集」指向本合集）会自动追加到末尾。"
+        summary: "{{fields.post}}"
+        fields:
+          - label: "文章"
+            name: post
+            widget: relation
+            collection: posts
+            search_fields: ["title"]
+            value_field: "slug"
+            display_fields: ["title"]
       - label: "正文"
         name: body
         widget: markdown
