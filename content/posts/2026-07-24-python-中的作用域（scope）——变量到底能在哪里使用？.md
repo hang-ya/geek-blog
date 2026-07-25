@@ -6,6 +6,7 @@ description: 作用域（Scope）决定了一个变量可以在哪些地方被�
   nonlocal。
 tags:
   - 随笔
+series: python-basics
 draft: false
 ---
 # Python 中的作用域（Scope）是什么？
