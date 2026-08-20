@@ -1,13 +1,14 @@
 ---
-title: print() 函数是如何工作的？
+draft: false
 slug: py2
+title: print() 函数是如何工作的？
 date: 2026-07-20
 description: print()是 Python 中最常用、最基础的内置函数之一，主要作用是将内容输出（显示）到终端（控制台）。程序运行时，我们可以使用
   print() 查看程序结果、调试代码或向用户显示信息。
+cover: /images/python.png
 tags:
   - 随笔
 series: python-basics
-draft: false
 ---
 # print() 的基本语法
 
