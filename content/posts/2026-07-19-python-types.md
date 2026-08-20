@@ -1,13 +1,14 @@
 ---
-title: Python 中常见的数据类型有哪些？
+draft: false
 slug: py3
+title: Python 中常见的数据类型有哪些？
 date: 2026-07-20
 description: 数据类型（Data Type）用来表示变量中存储的数据种类，例如数字、文本、真假值或一组数据。Python
   是一种动态类型（Dynamic Typing）语言，不需要提前声明变量类型，解释器会根据赋的值自动判断数据类型。
+cover: /images/python.png
 tags:
   - 随笔
 series: python-basics
-draft: false
 ---
 # 为什么需要数据类型？
 
